@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Przedszkole kilińskiego</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Hello, world!</title>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+    <!-- MDB -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.min.css" rel="stylesheet"/>
+    <!-- DataTables -->
+    <link rel="stylesheet" href="static/dataTables.css">
+</head>
+<body style="background-color: black;">
+<nav class="navbar navbar-expand-lg navbar-light bg-white px-5 py-3 fixed-top navbarFont">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Przedszkole kilińskiego</a>
+    <button
+      data-mdb-collapse-init
+      class="navbar-toggler"
+      type="button"
+      data-mdb-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link" href="{{ url_for('indexPage') }}">Home</a>
+        {% if not logged_in %}
+        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+        {% else %}
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Kategorie
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            {% for category in categories %}
+              <li><a class="dropdown-item" href="{{ url_for('getCategory', num=category.id) }}">{{category.name}}</a></li>
+            {% endfor %}
+            <li><hr class="dropdown-divider" /></li>
+            <li><a class="dropdown-item" href="{{ url_for('getAll')}}">Wszystkie</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('getOutdated')}}">Opoźnione</a></li>
+          </ul>
+        </div>
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#"  role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Magazyny
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+          {% for store in stores %}
+            <li><a class="dropdown-item" href="{{ url_for('getStore', num=store.id) }}">{{store.name}}</a></li>
+          {% endfor %}
+          <li><hr class="dropdown-divider" /></li>
+          <li><a class="dropdown-item" href="{{ url_for('getAll')}}">Wszystkie</a></li>
+          <li><a class="dropdown-item" href="{{ url_for('getOutdated')}}">Opoźnione</a></li>
+          </ul>
+        </div>
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#"  role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Sekcja Admina
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="{{ url_for('addStore') }}">Dodaj magazyn</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('addCategory') }}">Dodaj kategorię</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('addItem') }}">Dodaj przedmiot</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('deleteCategory') }}">Usun kategorie</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('deleteStore') }}">Usun magazyn</a></li>
+          </ul>
+        </div>
+        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>

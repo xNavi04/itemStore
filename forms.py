@@ -1,50 +1,54 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, DateField
+from wtforms import StringField, SubmitField, SelectField, DateField, PasswordField
 from wtforms.validators import DataRequired, ValidationError
 from datetime import datetime
 
 class categoriesForm(FlaskForm):
-    name = StringField("name", validators=[DataRequired()])
-    submit = SubmitField("submit")
+    name = StringField("Nazwa", validators=[DataRequired()])
+    submit = SubmitField("zatwierdź")
 
 class storesForm(FlaskForm):
-    name = StringField("name", validators=[DataRequired()])
-    submit = SubmitField("submit")
+    name = StringField("Nazwa", validators=[DataRequired()])
+    submit = SubmitField("zatwierdź")
 
 class borrowForm(FlaskForm):
     borrower = StringField("Pożyczający", validators=[DataRequired()])
     finish_date = DateField("Data oddania", validators=[DataRequired()])
-    submit = SubmitField("Zatwierdź")
+    submit = SubmitField("zatwierdź")
 
     def validate_finish_date(self, field):
         if field.data and field.data < datetime.now().date():
             raise ValidationError('Finish date must be equal to or later than start date.')
 
 class itemForm(FlaskForm):
-    title = StringField("title", validators=[DataRequired()])
-    author = StringField("author/wydawnictwo", validators=[DataRequired()])
-    category = SelectField("categories", choices=[], validators=[DataRequired()])
-    store = SelectField("stores", choices=[], validators=[DataRequired()])
-    submit = SubmitField("submit")
+    title = StringField("Tytuł", validators=[DataRequired()])
+    author = StringField("Autor/wydawnictwo", validators=[DataRequired()])
+    category = SelectField("Kategoria", choices=[], validators=[DataRequired()])
+    store = SelectField("Magazyn", choices=[], validators=[DataRequired()])
+    submit = SubmitField("zatwierdź")
 
 class itemFormForBorrow(FlaskForm):
-    title = StringField("title", validators=[DataRequired()])
-    author = StringField("author/wydawnictwo", validators=[DataRequired()])
+    title = StringField("Tytuł", validators=[DataRequired()])
+    author = StringField("Autor/wydawnictwo", validators=[DataRequired()])
     borrower = StringField("Pożyczający", validators=[DataRequired()])
-    category = SelectField("categories", choices=[], validators=[DataRequired()])
-    store = SelectField("stores", choices=[], validators=[DataRequired()])
+    category = SelectField("Kategoria", choices=[], validators=[DataRequired()])
+    store = SelectField("Magazyn", choices=[], validators=[DataRequired()])
     finish_date = DateField("Data oddania", validators=[DataRequired()])
-    submit = SubmitField("submit")
+    submit = SubmitField("zatwierdź")
 
     def validate_finish_date(self, field):
         if field.data and field.data < datetime.now().date():
             raise ValidationError('Finish date must be equal to or later than start date.')
 
 class selectCategoryForm(FlaskForm):
-    categories = SelectField("Kategorie", choices=[], validators=[DataRequired()])
-    submit = SubmitField("submit")
+    categories = SelectField("Kategoria", choices=[], validators=[DataRequired()])
+    submit = SubmitField("zatwierdź")
 
 
 class selectStoreForm(FlaskForm):
-    stores = SelectField("Magazyny", choices=[], validators=[DataRequired()])
-    submit = SubmitField("submit")
+    stores = SelectField("Magazyn", choices=[], validators=[DataRequired()])
+    submit = SubmitField("zatwierdź")
+
+class confirmReturnForm(FlaskForm):
+    password = PasswordField("Wprowadź hasło", validators=[DataRequired()])
+    submit = SubmitField("zatwierdź")

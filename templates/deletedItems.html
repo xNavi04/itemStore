@@ -1,0 +1,35 @@
+{% include 'header.html' %}
+<div class="col-lg-12 df-flex justify-content-center mx-auto rounded-6" style="background-color: white; margin-top: 60px; margin-bottom: 150px; transform: scale(0.8);">
+    <table id="myTable" class="display" style="width:100%;">
+        <thead>
+            <tr>
+                <th>tytuł</th>
+                <th>autor/wydawnictwo</th>
+                <th>Magazyn</th>
+                <th>Kategoria</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{item.title}}</td>
+                <td>{{item.author}}</td>
+                <td>{{item.store.name}}</td>
+                <td>{{item.category.name}}</td>
+                <td>{{item.status}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>tytuł</th>
+                <th>autor/wydawnictwo</th>
+                <th>Magazyn</th>
+                <th>Kategoria</th>
+                <th>Status</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% include 'footer.html' %}

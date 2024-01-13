@@ -37,7 +37,7 @@
                 {% endfor %}
                 {% endif %}
                 {% if item.status == "noBorrow" %}
-                <td><a href="{{ url_for('borrow', num=item.id) }}" target="_blank"><button type="button" class="btn btn-outline-warning" data-mdb-ripple-init data-mdb-ripple-color="dark">Wypożycz</button></a></td>
+                <td><a href="{{ url_for('borrow', num=item.id) }}"><button type="button" class="btn btn-outline-warning" data-mdb-ripple-init data-mdb-ripple-color="dark">Wypożycz</button></a></td>
                 {% else %}
                 <td><a href="{{ url_for('deleteBorrow', num=item.id) }}"><button type="button" class="btn btn-outline-warning" data-mdb-ripple-init data-mdb-ripple-color="dark">Zwróć</button></a></td>
                 {% endif %}

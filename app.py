@@ -8,12 +8,13 @@ from flask_bootstrap import Bootstrap5
 from forms import categoriesForm, storesForm, borrowForm, itemForm, itemFormForBorrow, selectCategoryForm, selectStoreForm, confirmReturnForm
 from datetime import datetime
 from functools import wraps
+import os
 
 
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "asdf89sdahvfad0vuhnadjiwsbjwe"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///mydb.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://aaddcjlh:aKSlu6HHzRP5gcpYC8tXU-WvCIDgjVOt@horton.db.elephantsql.com/aaddcjlh"
 
 db = SQLAlchemy()
 db.init_app(app)
@@ -115,6 +116,16 @@ def confirmPassword(f):
     return decorator_function
 
 
+def adminOnly(f):
+    @wraps(f)
+    def decorator_function(*args, **kwargs):
+        if current_user.id == 1:
+            return f(*args, **kwargs)
+        else:
+            return abort(404)
+    return decorator_function
+
+
 ###########-------------HOME PAGE-------------#####################
 @app.route("/")
 def indexPage():
@@ -129,6 +140,8 @@ def indexPage():
 
 ###########-------------REGISTER PAGE-------------#####################
 @app.route("/rejestracja", methods=["POST", "GET"])
+@login_required
+@adminOnly
 def register():
     alerts = []
     if request.method == "POST":
@@ -187,8 +200,8 @@ def login():
 
 
 ###########-------------LOGUT PAGE-------------#####################
-@login_required
 @app.route("/wylogowanie")
+@login_required
 def logout():
     logout_user()
     return redirect(url_for("indexPage"))
@@ -196,8 +209,8 @@ def logout():
 
 
 ###########-------------ADD ITEM-------------#####################
-@login_required
 @app.route("/dodajPrzedmiot", methods=["POST", "GET"])
+@login_required
 def addItem():
     alerts = []
     form = itemForm()
@@ -226,8 +239,8 @@ def addItem():
 
 
 ###########-------------ADD CATEGORY-------------#####################
-@login_required
 @app.route("/dodajKategorię", methods=["POST", "GET"])
+@login_required
 def addCategory():
     alerts = []
     form = categoriesForm()
@@ -252,8 +265,8 @@ def addCategory():
 
 
 ###########-------------ADD STORE-------------#####################
-@login_required
 @app.route("/dodajMagazyn", methods=["POST", "GET"])
+@login_required
 def addStore():
     alerts = []
     form = storesForm()
@@ -278,8 +291,8 @@ def addStore():
 
 
 ###########-------------GET ALL-------------#####################
-@login_required
 @app.route("/wszystkiePrzedmioty")
+@login_required
 def getAll():
     content = {
         "logged_in": current_user.is_authenticated,
@@ -288,8 +301,11 @@ def getAll():
         "items": db.session.execute(db.select(Item).where(Item.status != "deleted")).scalars().all()
     }
     return render_template("allitems.html", **content)
-@login_required
+###########-------------GET ALL-------------#####################
+
+###########-------------GET CATEGORY-------------#####################
 @app.route("/kategoria-<int:num>")
+@login_required
 def getCategory(num):
     db.get_or_404(Category, num)
     content = {
@@ -299,12 +315,13 @@ def getCategory(num):
         "items": db.session.execute(db.select(Item).where(Item.category_id == num, Item.status != "deleted")).scalars().all()
     }
     return render_template("allitems.html", **content)
-###########-------------GET ALL-------------#####################
+###########-------------GET CATEGORY-------------#####################
 
 
 ###########-------------GET STORE-------------#####################
-@login_required
+
 @app.route("/magazyn-<int:num>")
+@login_required
 def getStore(num):
     db.get_or_404(Store, num)
     content = {
@@ -316,6 +333,9 @@ def getStore(num):
     return render_template("allitems.html", **content)
 ###########-------------GET STORE-------------#####################
 
+
+
+###########--------------GET DELETED ITEM-----###########################
 @app.route("/usuniętePrzedmioty")
 @login_required
 def deletedItem():
@@ -326,11 +346,16 @@ def deletedItem():
         "items": db.session.execute(db.select(Item).where(Item.status == "deleted")).scalars().all()
     }
     return render_template("deletedItems.html", **content)
+###########--------------GET DELETED ITEM-----###########################
+
+
+
+
 
 
 ###########-------------GET OUTDATE-------------#####################
-@login_required
 @app.route("/opóźnione")
+@login_required
 def getOutdated():
     borrows = db.session.execute(db.select(Borrow)).scalars().all()
     items = [borrow.item for borrow in borrows if datetime.strptime(borrow.to_date, "%Y-%m-%d").date() <= datetime.now().date()]
@@ -469,8 +494,6 @@ def deleteCategory():
     return render_template("addItem.html", **content)
 ###########-------------DELETE CATEGORY-------------#####################
 
-
-
 ###########-------------DELETE STORE-------------#####################
 @login_required
 @app.route("/usunMagazyn", methods=["GET", "POST"])
@@ -493,7 +516,13 @@ def deleteStore():
 ###########-------------DELETE STORE-------------#####################
 
 
-
+@app.route("/przywróćPrzedmiot/<int:num>")
+@login_required
+def restoreItem(num):
+    item = db.get_or_404(Item, num)
+    item.status = "noBorrow"
+    db.session.commit()
+    return redirect(url_for("deletedItem"))
 
 
 if __name__  == "__main__":

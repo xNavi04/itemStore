@@ -3,9 +3,9 @@
 <div class="container col-lg-3" style="margin-top: 150px;">
     {{ render_form(form, novalidate="true") }}
 </div>
-{% for alert in alerts  %}
+{% if alerts %}
 <div class="container col-lg-3 mt-3">
-    <h6 style="color: red;">{{ alert }}</h6>
+    <h6 style="color: red;">{{ alerts[0] }}</h6>
 </div>
-{% endfor %}
+{% endif %}
 {% include 'footer.html' %}

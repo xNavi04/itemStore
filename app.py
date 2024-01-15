@@ -8,7 +8,6 @@ from flask_bootstrap import Bootstrap5
 from forms import categoriesForm, storesForm, borrowForm, itemForm, itemFormForBorrow, selectCategoryForm, selectStoreForm, confirmReturnForm
 from datetime import datetime
 from functools import wraps
-import os
 
 
 
@@ -278,7 +277,7 @@ def addStore():
             new_store = Store(name=name, user=current_user)
             db.session.add(new_store)
             db.session.commit()
-            alerts = alerts.append("Dodano pomyślnie!")
+            alerts.append("Dodano pomyślnie!")
     content = {
         "logged_in": current_user.is_authenticated,
         "form": form,
@@ -477,19 +476,24 @@ def deleteItem(num):
 @login_required
 @app.route("/usunKategorie", methods=["GET", "POST"])
 def deleteCategory():
+    alert = ""
     form = selectCategoryForm()
     form.categories.choices = [(category.name, category.name) for category in db.session.execute(db.select(Category)).scalars().all()]
     if form.validate_on_submit():
         category_name = form.categories.data
         category = db.session.execute(db.select(Category).where(Category.name == category_name)).scalar()
-        db.session.delete(category)
-        db.session.commit()
-        return redirect(request.referrer)
+        if not category.items:
+            db.session.delete(category)
+            db.session.commit()
+            return redirect(request.referrer)
+        else:
+            alert = "Musisz zmienić kategorię w przedmiotach, które mają kategorię, którą chcesz usunąć!"
     content = {
         "logged_in": current_user.is_authenticated,
         "categories": db.session.execute(db.select(Category)).scalars().all(),
         "stores": db.session.execute(db.select(Store)).scalars().all(),
-        "form": form
+        "form": form,
+        "alert": alert
     }
     return render_template("addItem.html", **content)
 ###########-------------DELETE CATEGORY-------------#####################
@@ -498,19 +502,24 @@ def deleteCategory():
 @login_required
 @app.route("/usunMagazyn", methods=["GET", "POST"])
 def deleteStore():
+    alert = []
     form = selectStoreForm()
     form.stores.choices = [(store.name, store.name) for store in db.session.execute(db.select(Store)).scalars().all()]
     if form.validate_on_submit():
         store_name = form.stores.data
         store = db.session.execute(db.select(Store).where(Store.name == store_name)).scalar()
-        db.session.delete(store)
-        db.session.commit()
-        return redirect(request.referrer)
+        if not store.items:
+            db.session.delete(store)
+            db.session.commit()
+            return redirect(request.referrer)
+        else:
+            alert = "Musisz zmienić magazyn w przedmiotach, które mają magazyn, który chcesz usunąć!"
     content = {
         "logged_in": current_user.is_authenticated,
         "categories": db.session.execute(db.select(Category)).scalars().all(),
         "stores": db.session.execute(db.select(Store)).scalars().all(),
-        "form": form
+        "form": form,
+        "alert": alert
     }
     return render_template("addItem.html", **content)
 ###########-------------DELETE STORE-------------#####################

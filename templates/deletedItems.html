@@ -8,7 +8,6 @@
                 <th>Magazyn</th>
                 <th>Kategoria</th>
                 <th>Status</th>
-                <th>Przywróć</th>
             </tr>
         </thead>
         <tbody>
@@ -19,7 +18,6 @@
                 <td>{{item.store.name}}</td>
                 <td>{{item.category.name}}</td>
                 <td>{{item.status}}</td>
-                <td><a href="{{ url_for('restoreItem', num=item.id) }}"><button type="button" class="btn btn-outline-warning" data-mdb-ripple-init data-mdb-ripple-color="dark">Przywróć</button></a></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -30,7 +28,6 @@
                 <th>Magazyn</th>
                 <th>Kategoria</th>
                 <th>Status</th>
-                <th>Przywróć</th>
             </tr>
         </tfoot>
     </table>

@@ -8,12 +8,13 @@ from flask_bootstrap import Bootstrap5
 from forms import categoriesForm, storesForm, borrowForm, itemForm, itemFormForBorrow, selectCategoryForm, selectStoreForm, confirmReturnForm
 from datetime import datetime
 from functools import wraps
+import os
 
 
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "asdf89sdahvfad0vuhnadjiwsbjwe"
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://aaddcjlh:aKSlu6HHzRP5gcpYC8tXU-WvCIDgjVOt@horton.db.elephantsql.com/aaddcjlh"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLALCHEMY_DATABASE_URI")
 
 db = SQLAlchemy()
 db.init_app(app)
@@ -86,7 +87,7 @@ with app.app_context():
     db.create_all()
     if not db.session.execute(db.select(User)).scalar():
         password = werkzeug.security.generate_password_hash("Admin1230")
-        admin = User(username="Admin", email="m.religa@wp.pl", password=password)
+        admin = User(username="Admin", email="admin@gmail.com", password=password)
         db.session.add(admin)
         db.session.commit()
 
@@ -446,7 +447,6 @@ def editItem(num):
 @login_required
 @confirmPassword
 def deleteBorrow(num):
-    alerts = []
     item = db.get_or_404(Item, num)
     for borrow in item.borrow:
         borrow = borrow
@@ -476,24 +476,25 @@ def deleteItem(num):
 @login_required
 @app.route("/usunKategorie", methods=["GET", "POST"])
 def deleteCategory():
-    alert = ""
+    alerts = []
     form = selectCategoryForm()
     form.categories.choices = [(category.name, category.name) for category in db.session.execute(db.select(Category)).scalars().all()]
     if form.validate_on_submit():
         category_name = form.categories.data
         category = db.session.execute(db.select(Category).where(Category.name == category_name)).scalar()
-        if not category.items:
+        items = db.session.execute(db.select(Item).where(Item.status != "deleted", Item.category_id == category.id)).scalars().all()
+        if not items:
             db.session.delete(category)
             db.session.commit()
             return redirect(request.referrer)
         else:
-            alert = "Musisz zmienić kategorię w przedmiotach, które mają kategorię, którą chcesz usunąć!"
+            alerts.append("Musisz zmienić kategorię w przedmiotach, które mają kategorię, którą chcesz usunąć!")
     content = {
         "logged_in": current_user.is_authenticated,
         "categories": db.session.execute(db.select(Category)).scalars().all(),
         "stores": db.session.execute(db.select(Store)).scalars().all(),
         "form": form,
-        "alert": alert
+        "alerts": alerts
     }
     return render_template("addItem.html", **content)
 ###########-------------DELETE CATEGORY-------------#####################
@@ -502,36 +503,28 @@ def deleteCategory():
 @login_required
 @app.route("/usunMagazyn", methods=["GET", "POST"])
 def deleteStore():
-    alert = []
+    alerts = []
     form = selectStoreForm()
     form.stores.choices = [(store.name, store.name) for store in db.session.execute(db.select(Store)).scalars().all()]
     if form.validate_on_submit():
         store_name = form.stores.data
         store = db.session.execute(db.select(Store).where(Store.name == store_name)).scalar()
-        if not store.items:
+        items = db.session.execute(db.select(Item).where(Item.store_id == store.id, Item.status != "deleted")).scalars().all()
+        if not items:
             db.session.delete(store)
             db.session.commit()
             return redirect(request.referrer)
         else:
-            alert = "Musisz zmienić magazyn w przedmiotach, które mają magazyn, który chcesz usunąć!"
+            alerts.append("Musisz zmienić magazyn w przedmiotach, które mają magazyn, który chcesz usunąć!")
     content = {
         "logged_in": current_user.is_authenticated,
         "categories": db.session.execute(db.select(Category)).scalars().all(),
         "stores": db.session.execute(db.select(Store)).scalars().all(),
         "form": form,
-        "alert": alert
+        "alerts": alerts
     }
     return render_template("addItem.html", **content)
 ###########-------------DELETE STORE-------------#####################
-
-
-@app.route("/przywróćPrzedmiot/<int:num>")
-@login_required
-def restoreItem(num):
-    item = db.get_or_404(Item, num)
-    item.status = "noBorrow"
-    db.session.commit()
-    return redirect(url_for("deletedItem"))
 
 
 if __name__  == "__main__":

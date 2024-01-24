@@ -1,4 +1,6 @@
 ## Item Warehouse 📦
+email: admin@gmail.com
+password: Admin1230
 
 ### Description 📝
 The program is designed for companies that need an **online warehouse** for various items. For example, for public institutions that occasionally have to deal with control and have to show a list of purchased items.
@@ -28,6 +30,8 @@ The program is designed for companies that need an **online warehouse** for vari
 
 
 ## Magazyn Przedmiotów 📦
+email: admin@gmail.com
+password: Admin1230
 
 ### Opis 📝
 Program jest przeznaczony dla firm, które potrzebują **magazynu internetowego** dla różnych przedmiotów. Na przykład dla publicznych placówek, które co jakiś czas mają styczność z kontrolą i muszą wykazać spis zakupionych przedmiotów.

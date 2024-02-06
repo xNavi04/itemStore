@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, DateField, PasswordField
+from wtforms import StringField, SubmitField, SelectField, DateField, PasswordField, BooleanField
 from wtforms.validators import DataRequired, ValidationError
 from datetime import datetime
 
@@ -44,6 +44,12 @@ class selectCategoryForm(FlaskForm):
     categories = SelectField("Kategoria", choices=[], validators=[DataRequired()])
     submit = SubmitField("zatwierdź")
 
+class addPermissionToUserForm(FlaskForm):
+    reading = BooleanField("Czytanie")
+    editing = BooleanField("Edycja")
+    deleting = BooleanField("Usuwanie")
+    adding = BooleanField("Dodawanie")
+    submit = SubmitField("zatwierdź")
 
 class selectStoreForm(FlaskForm):
     stores = SelectField("Magazyn", choices=[], validators=[DataRequired()])

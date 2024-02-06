@@ -5,7 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_ckeditor import CKEditor
 from flask_bootstrap import Bootstrap5
-from forms import categoriesForm, storesForm, borrowForm, itemForm, itemFormForBorrow, selectCategoryForm, selectStoreForm, confirmReturnForm
+from forms import categoriesForm, storesForm, borrowForm, itemForm, itemFormForBorrow, selectCategoryForm, selectStoreForm, confirmReturnForm, addPermissionToUserForm
 from datetime import datetime
 from functools import wraps
 import os
@@ -14,7 +14,7 @@ import os
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLALCHEMY_DATABASE_URI")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db" #os.environ.get("SQLALCHEMY_DATABASE_URI")
 
 db = SQLAlchemy()
 db.init_app(app)
@@ -28,6 +28,11 @@ def load_user(user_id):
     return db.get_or_404(User, user_id)
 
 ###########-------------DATABASE-------------#####################
+user_permissions = db.Table('user_permissions',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('permission_id', db.Integer, db.ForeignKey('permissions.id'), primary_key=True)
+)
+
 class User(db.Model, UserMixin):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -40,6 +45,12 @@ class User(db.Model, UserMixin):
     categories = db.relationship("Category", back_populates="user")
     stores = db.relationship("Store", back_populates="user")
     borrows = db.relationship("Borrow", back_populates="user")
+    permissions = db.relationship('Permission', secondary=user_permissions, backref=db.backref('users', lazy='dynamic'))
+
+class Permission(db.Model):
+    __tablename__ = "permissions"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
 
 class Item(db.Model):
     __tablename__ = "items"
@@ -85,6 +96,16 @@ class Store(db.Model):
 
 with app.app_context():
     db.create_all()
+    if not db.session.execute(db.select(Permission)).scalar():
+        new_permission = Permission(name="reading")
+        db.session.add(new_permission)
+        new_permission = Permission(name="editing")
+        db.session.add(new_permission)
+        new_permission = Permission(name="deleting")
+        db.session.add(new_permission)
+        new_permission = Permission(name="adding")
+        db.session.add(new_permission)
+        db.session.commit()
     if not db.session.execute(db.select(User)).scalar():
         password = werkzeug.security.generate_password_hash("Admin1230")
         admin = User(username="Admin", email="admin@gmail.com", password=password)
@@ -125,6 +146,53 @@ def adminOnly(f):
             return abort(404)
     return decorator_function
 
+def reading(f):
+    @wraps(f)
+    def decorator_function(*args, **kwargs):
+        if not current_user.permissions:
+            return abort(404)
+        if "reading" in [permission.name for permission in current_user.permissions or current_user.id == 1]:
+            return f(*args, **kwargs)
+        else:
+            return abort(404)
+    return decorator_function
+
+
+def editing(f):
+    @wraps(f)
+    def decorator_function(*args, **kwargs):
+        if not current_user.permissions:
+            return abort(404)
+        if "editing" in [permission.name for permission in current_user.permissions] or current_user.id == 1:
+            return f(*args, **kwargs)
+        else:
+            return abort(404)
+    return decorator_function
+
+
+def adding(f):
+    @wraps(f)
+    def decorator_function(*args, **kwargs):
+        if not current_user.permissions:
+            return abort(404)
+        if "adding" in [permission.name for permission in current_user.permissions] or current_user.id == 1:
+            return f(*args, **kwargs)
+        else:
+            return abort(404)
+    return decorator_function
+
+def deleting(f):
+    @wraps(f)
+    def decorator_function(*args, **kwargs):
+        if not current_user.permissions:
+            return abort(404)
+        if "deleting" in [permission.name for permission in current_user.permissions] or current_user.id == 1:
+            return f(*args, **kwargs)
+        else:
+            return abort(404)
+    return decorator_function
+
+
 
 ###########-------------HOME PAGE-------------#####################
 @app.route("/")
@@ -157,14 +225,15 @@ def register():
             alerts.append("Password do not match!")
         elif username == "" or email == "" or password == "":
             alerts.append("Something is empty!")
-        elif not "@" in email:
+        elif "@" not in email:
             alerts.append("Email is wrong!")
         else:
-            hashPassword = generate_password_hash(password, salt_length=8)
+            hashPassword = generate_password_hash(password, salt_length=9)
             new_user = User(username=username, email=email, password=hashPassword)
+            for permission in db.session.execute(db.select(Permission)).scalars().all():
+                new_user.permissions.append(permission)
             db.session.add(new_user)
             db.session.commit()
-            login_user(new_user)
             return redirect(url_for("indexPage"))
     content = {
         "logged_in": current_user.is_authenticated,
@@ -211,6 +280,7 @@ def logout():
 ###########-------------ADD ITEM-------------#####################
 @app.route("/dodajPrzedmiot", methods=["POST", "GET"])
 @login_required
+@adding
 def addItem():
     alerts = []
     form = itemForm()
@@ -241,6 +311,7 @@ def addItem():
 ###########-------------ADD CATEGORY-------------#####################
 @app.route("/dodajKategorię", methods=["POST", "GET"])
 @login_required
+@adding
 def addCategory():
     alerts = []
     form = categoriesForm()
@@ -267,6 +338,7 @@ def addCategory():
 ###########-------------ADD STORE-------------#####################
 @app.route("/dodajMagazyn", methods=["POST", "GET"])
 @login_required
+@adding
 def addStore():
     alerts = []
     form = storesForm()
@@ -293,6 +365,7 @@ def addStore():
 ###########-------------GET ALL-------------#####################
 @app.route("/wszystkiePrzedmioty")
 @login_required
+@reading
 def getAll():
     content = {
         "logged_in": current_user.is_authenticated,
@@ -306,6 +379,7 @@ def getAll():
 ###########-------------GET CATEGORY-------------#####################
 @app.route("/kategoria-<int:num>")
 @login_required
+@reading
 def getCategory(num):
     db.get_or_404(Category, num)
     content = {
@@ -322,6 +396,7 @@ def getCategory(num):
 
 @app.route("/magazyn-<int:num>")
 @login_required
+@reading
 def getStore(num):
     db.get_or_404(Store, num)
     content = {
@@ -338,6 +413,7 @@ def getStore(num):
 ###########--------------GET DELETED ITEM-----###########################
 @app.route("/usuniętePrzedmioty")
 @login_required
+@reading
 def deletedItem():
     content = {
         "logged_in": current_user.is_authenticated,
@@ -356,6 +432,7 @@ def deletedItem():
 ###########-------------GET OUTDATE-------------#####################
 @app.route("/opóźnione")
 @login_required
+@reading
 def getOutdated():
     borrows = db.session.execute(db.select(Borrow)).scalars().all()
     items = [borrow.item for borrow in borrows if datetime.strptime(borrow.to_date, "%Y-%m-%d").date() <= datetime.now().date()]
@@ -370,8 +447,8 @@ def getOutdated():
 
 
 ###########-------------ADD BORROW-------------#####################
-@login_required
 @app.route("/wypożyczanie/<int:num>", methods=["POST", "GET"])
+@editing
 def borrow(num):
     item = db.get_or_404(Item, num)
     form = borrowForm(start_date=datetime.now().date())
@@ -401,6 +478,7 @@ def borrow(num):
 ###########-------------EDIT ITEM-------------#####################
 @app.route("/edytujPrzedmiot/<int:num>", methods=["GET", "POST"])
 @login_required
+@editing
 def editItem(num):
     item = db.get_or_404(Item, num)
     x = item.category_id
@@ -445,6 +523,7 @@ def editItem(num):
 
 @app.route("/oddaj/<int:num>", methods=["POST", "GET"])
 @login_required
+@editing
 @confirmPassword
 def deleteBorrow(num):
     item = db.get_or_404(Item, num)
@@ -460,6 +539,7 @@ def deleteBorrow(num):
 ###########-------------DELETE ITEM-------------#####################
 @app.route("/usunPrzedmiot/<int:num>", methods=["POST", "GET"])
 @login_required
+@deleting
 @confirmPassword
 def deleteItem(num):
     item = db.get_or_404(Item, num)
@@ -473,8 +553,9 @@ def deleteItem(num):
 
 
 ###########-------------DELETE CATEGORY-------------#####################
-@login_required
 @app.route("/usunKategorie", methods=["GET", "POST"])
+@login_required
+@deleting
 def deleteCategory():
     alerts = []
     form = selectCategoryForm()
@@ -500,8 +581,9 @@ def deleteCategory():
 ###########-------------DELETE CATEGORY-------------#####################
 
 ###########-------------DELETE STORE-------------#####################
-@login_required
 @app.route("/usunMagazyn", methods=["GET", "POST"])
+@login_required
+@deleting
 def deleteStore():
     alerts = []
     form = selectStoreForm()
@@ -525,6 +607,84 @@ def deleteStore():
     }
     return render_template("addItem.html", **content)
 ###########-------------DELETE STORE-------------#####################
+
+
+###########-------------ADD PERMISSION TO USER-------------#####################
+@app.route("/zmienPermisjeDlaUzytkownika/<int:num>", methods=["POST", "GET"])
+@adminOnly
+def changePermission(num):
+    alerts = []
+    user = db.get_or_404(User, num)
+    form = addPermissionToUserForm(reading="reading" in [permission.name for permission in user.permissions],
+                                   editing="editing" in [permission.name for permission in user.permissions],
+                                   adding="adding" in [permission.name for permission in user.permissions],
+                                   deleting="deleting" in [permission.name for permission in user.permissions])
+    if form.validate_on_submit():
+        permission = db.session.execute(db.select(Permission).where(Permission.name == "reading")).scalar()
+        if "reading" not in [permission.name for permission in user.permissions] and form.reading.data:
+            user.permissions.append(permission)
+        elif "reading" in [permission.name for permission in user.permissions] and not form.reading.data:
+            user.permissions.remove(permission)
+
+        permission = db.session.execute(db.select(Permission).where(Permission.name == "adding")).scalar()
+        if "adding" not in [permission.name for permission in user.permissions] and form.adding.data:
+            user.permissions.append(permission)
+        elif "adding" in [permission.name for permission in user.permissions] and not form.adding.data:
+            user.permissions.remove(permission)
+
+        permission = db.session.execute(db.select(Permission).where(Permission.name == "editing")).scalar()
+        if "editing" not in [permission.name for permission in user.permissions] and form.editing.data:
+            user.permissions.append(permission)
+        elif "editing" in [permission.name for permission in user.permissions] and not form.editing.data:
+            user.permissions.remove(permission)
+
+        permission = db.session.execute(db.select(Permission).where(Permission.name == "deleting")).scalar()
+        if "deleting" not in [permission.name for permission in user.permissions] and form.deleting.data:
+            user.permissions.append(permission)
+        elif "deleting" in [permission.name for permission in user.permissions] and not form.deleting.data:
+            user.permissions.remove(permission)
+        db.session.commit()
+        return redirect(url_for("allUsers"))
+    content = {
+        "logged_in": current_user.is_authenticated,
+        "categories": db.session.execute(db.select(Category)).scalars().all(),
+        "stores": db.session.execute(db.select(Store)).scalars().all(),
+        "form": form,
+        "alerts": alerts
+    }
+    return render_template("addItem.html", **content)
+
+@app.route("/test")
+def testowy():
+    x = "reading" in [permission.name for permission in current_user.permissions]
+    print(x)
+    return "test"
+
+@app.route("/wszyscyUżytkownicy")
+@login_required
+@adminOnly
+def allUsers():
+    users = db.session.execute(db.select(User)).scalars().all()
+    content = {
+        "logged_in": current_user.is_authenticated,
+        "categories": db.session.execute(db.select(Category)).scalars().all(),
+        "stores": db.session.execute(db.select(Store)).scalars().all(),
+        "users": users
+    }
+    return render_template("allusers.html", **content)
+
+
+@app.route("/deleteUser/<int:num>", methods=["POST", "GET"])
+@adminOnly
+@confirmPassword
+def deleteUser(num):
+    user = db.get_or_404(User, num)
+    if user.id != 1:
+        db.session.delete(user)
+        db.session.commit()
+        return redirect(url_for("allUsers"))
+    else:
+        return abort(404)
 
 
 if __name__  == "__main__":

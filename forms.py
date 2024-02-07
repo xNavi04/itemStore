@@ -18,7 +18,7 @@ class borrowForm(FlaskForm):
 
     def validate_finish_date(self, field):
         if field.data and field.data < datetime.now().date():
-            raise ValidationError('Finish date must be equal to or later than start date.')
+            raise ValidationError('Data musi być równa lub późniejsza od dnia dzisiejszego!')
 
 class itemForm(FlaskForm):
     title = StringField("Tytuł", validators=[DataRequired()])
@@ -38,7 +38,7 @@ class itemFormForBorrow(FlaskForm):
 
     def validate_finish_date(self, field):
         if field.data and field.data < datetime.now().date():
-            raise ValidationError('Finish date must be equal to or later than start date.')
+            raise ValidationError('Data musi być równa lub późniejsza od dnia dzisiejszego!')
 
 class selectCategoryForm(FlaskForm):
     categories = SelectField("Kategoria", choices=[], validators=[DataRequired()])

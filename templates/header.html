@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Library</title>
+    <title>Przedszkole kilińskiego</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,7 +22,7 @@
 <body style="background-color: black;" class="d-flex flex-column min-vh-100">
 <nav class="navbar navbar-expand-lg navbar-light bg-white px-5 py-3 fixed-top navbarFont">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('indexPage') }}">Library</a>
+    <a class="navbar-brand" href="{{ url_for('indexPage') }}">Przedszkole kilińskiego</a>
     <button
       data-mdb-collapse-init
       class="navbar-toggler"
@@ -43,6 +43,7 @@
         <a class="nav-link" href="{{ url_for('register') }}">Rejestracja</a>
         {% endif %}
         {% else %}
+        {% if "reading" in all_permissions %}
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Kategorie
@@ -76,14 +77,23 @@
             Sekcja Admina
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            {% if "adding" in all_permissions %}
             <li><a class="dropdown-item" href="{{ url_for('addStore') }}">Dodaj magazyn</a></li>
             <li><a class="dropdown-item" href="{{ url_for('addCategory') }}">Dodaj kategorię</a></li>
             <li><a class="dropdown-item" href="{{ url_for('addItem') }}">Dodaj przedmiot</a></li>
+            {% endif %}
+            {% if "deleting" in all_permissions %}
             <li><a class="dropdown-item" href="{{ url_for('deleteCategory') }}">Usun kategorie</a></li>
             <li><a class="dropdown-item" href="{{ url_for('deleteStore') }}">Usun magazyn</a></li>
+            {% endif %}
+            {% if current_user.id == 1 %}
             <li><a class="dropdown-item" href="{{ url_for('allUsers') }}">Wszyscy użytkownicy</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('register') }}">Zarejetruj użytkownika</a></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{{ url_for('downloadAll') }}">Pobierz wszystkie przedmioty</a></li>
           </ul>
         </div>
+        {% endif %}
         <a class="nav-link" href="{{ url_for('logout') }}">Wyloguj</a>
         {% endif %}
       </div>

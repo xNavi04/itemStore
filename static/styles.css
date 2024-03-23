@@ -1,0 +1,37 @@
+div.dataTables_wrapper {
+        width: 110%;
+        background: black;
+        transform: scale(0.8);
+        border-radius: 1px;
+    }
+    div {
+        color: deepskyblue;
+    }
+table > tbody > tr > td{
+    border:1px solid white;
+}
+label{
+    color: deepskyblue;
+}
+a{
+    color: deepskyblue;
+}
+.navbar-nav .nav-link  {
+    color: white;
+}
+
+.navbar-nav:hover .nav-link:hover  {
+    color: deepskyblue;
+}
+
+.navbar-brand {
+    color: white;
+}
+
+.navbar-brand:hover {
+    color: deepskyblue;
+}
+
+a.nav-link.dropdown-toggle.show{
+    color: aqua;
+}

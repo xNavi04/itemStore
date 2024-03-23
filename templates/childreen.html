@@ -1,0 +1,115 @@
+{% include 'header.html' %}
+<div class="row">
+    <div class="col-lg-1" style="background-color: rgba(0,0,77, 0.5)">
+        <div class="container" style="margin-top: 100%;">
+            {% if "czytanie dzieci" in all_permissions %}
+            <div class="container mb-2">
+                <a href="{{ url_for('dateSegregator') }}"><button type="button" class="btn btn-info" style="padding-inline: 39px;" data-mdb-ripple-init>data</button></a>
+            </div>
+            <div class="container mb-2">
+                <a href="{{ url_for('lateSegregator') }}"><button type="button" class="btn btn-info" style="padding-inline: 20px;" data-mdb-ripple-init>opóźnione</button></a>
+            </div>
+            <div class="container mb-2">
+                <a href="{{ url_for('missSegregator') }}"><button type="button" class="btn btn-info" style="padding-inline: 37px;" data-mdb-ripple-init>braki</button></a>
+            </div>
+            <div class="container mb-2">
+                <a href="{{ url_for('therapySegregator') }}"><button type="button" class="btn btn-info" style="padding-inline: 30px;" data-mdb-ripple-init>terapia</button></a>
+            </div>
+            <div class="container mb-2">
+                <a href="{{ url_for('teacherSegregator') }}"><button type="button" class="btn btn-info" style="padding-inline: 22px;" data-mdb-ripple-init>terapeuta</button></a>
+            </div>
+            <div class="container mb-5">
+                <a href="{{ url_for('deleteFilter') }}"><button type="button" class="btn btn-info" style="padding-inline: 24px;" data-mdb-ripple-init>odfiltruj</button></a>
+            </div>
+            {% endif %}
+            {% if "dodawanie dzieci" in all_permissions %}
+            <div class="container mb-2 py-0">
+                <a href="{{ url_for('inputChild') }}"><button type="button" class="btn btn-info" style="padding-inline: 30px;" data-mdb-ripple-init>dodaj dziecko</button></a>
+            </div>
+            {% endif %}
+            {% if "usuwanie dzieci" in all_permissions %}
+            <div class="container mb-2 py-0">
+                <a href="{{ url_for('deleteChild') }}"><button type="button" class="btn btn-info" style="padding-inline: 30px;" data-mdb-ripple-init>usuń dziecko</button></a>
+            </div>
+            {% endif %}
+            <div class="container mb-2 py-0">
+                <a href="{{ url_for('addingTeacher') }}"><button type="button" class="btn btn-info" style="padding-inline: 22px;" data-mdb-ripple-init>dodaj terapeutę</button></a>
+            </div>
+            <div class="container mb-2 py-0">
+                <a href="{{ url_for('deletingTeacher') }}"><button type="button" class="btn btn-info" style="padding-inline: 22px;" data-mdb-ripple-init>usuń terapeutę</button></a>
+            </div>
+            <div class="container mb-2 py-0">
+                <a href="{{ url_for('addingTherapy') }}"><button type="button" class="btn btn-info" style="padding-inline: 31px;" data-mdb-ripple-init>dodaj terapię</button></a>
+            </div>
+            <div class="container mb-2 py-0">
+                <a href="{{ url_for('deletingTherapy') }}"><button type="button" class="btn btn-info" style="padding-inline: 31px;" data-mdb-ripple-init>usuń terapię</button></a>
+            </div>
+            <div>
+
+                {% for key in filters.keys() %}
+                <h4 style="color: white;"> &#10507; </h4>
+                <h3 class="text-white font-weight-light small">{{ key }} - {{ filters[key][0] }}</h3>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-11">
+    <table id="example" class="display" style="width:180%; color: white;">
+        <thead>
+            <tr>
+                <th>imię i nazwisko</th>
+                <th>data urodzenia</th>
+                <th>data ważności orzeczenia/opinii</th>
+                <th>umowa</th>
+                <th>opieka dziecka</th>
+                <th>kopia dokumentu</th>
+                <th>IPET/PWWR</th>
+                <th>WOFU/EWWR</th>
+                <th>karta zgłoszenia</th>
+                <th>rodzaj terapii</th>
+                <th>terapueta</th>
+                <th>zarządzanie</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for child in children %}
+            <tr>
+                <td style="width: 6%">{{child.name}}</td>
+                <td style="width: 3%">{{child.birth}}</td>
+                <td style="width: 7%">{% for expiration in child.expiration_dates[::-1] %} {{expiration.name}} {{expiration.date.strftime("%Y-%m-%d")}} <br> {% endfor %} {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('addExpiration', num=child.id) }}">dodaj</a> {% if child.expiration_dates %} <a href="{{ url_for('deleteExpiration', num=child.id) }}">usuń</a> <a href="{{ url_for('addCopy', num=child.id) }}">dodaj kopię</a> {% endif %}  {% endif %}</td>
+                <td style="width: 4.5%">{% for agreement in child.agreements[::-1] %} {{agreement.name}} {{agreement.date.strftime("%Y-%m-%d")}} <br> {% endfor %} {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('addAgreement', num=child.id) }}">dodaj</a> {% if child.agreements %} <a href="{{ url_for('deleteAgreement', num=child.id) }}">usuń</a> {% endif %} {% endif %}</td>
+                <td style="width: 10%">{% for activity in child.activities[::-1] %} {{activity.name}} Od {{activity.start_date.strftime("%Y-%m-%d")}} {% if not activity.end_date %} {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('endActivity', num=activity.id) }}">zakończ</a> {% endif %} {% else %} Do {{ activity.end_date.strftime("%Y-%m-%d") }} {% endif %} <br> {% endfor %} {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('addActivity', num=child.id) }}">dodaj</a> {% if child.activities %} <a href="{{ url_for('deleteActivity', num=child.id) }}">usuń</a> {% endif %} {% endif %}</td>
+                <td style="width: 4.5%">{% for expiration in child.expiration_dates[::-1] %} {% if expiration.copy %} {{expiration.name}} {{expiration.date.strftime("%Y-%m-%d")}} {% endif %} <br> {% endfor %} {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('deleteCopy', num=child.id) }}">usuń kopię</a> {% endif %}</td>
+                <td style="width: 3%">{% if not child.IPET %} {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('inputIPET', num=child.id) }}">dodaj</a> {% endif %} {% else %} {{child.IPET}} <br> {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('inputIPET', num=child.id) }}">edytuj</a> <a href="{{ url_for('deleteIPET', num=child.id) }}">usuń</a> {% endif %} {% endif %}</td>
+                <td style="width: 15.5%">{% for wofu in child.wofus[::-1] %} {{wofu.name}} {{wofu.date.strftime("%Y-%m-%d")}} {% endfor %} <br> {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('addWofu', num=child.id) }}">dodaj</a> {% if child.wofus %}<a href="{{ url_for('deleteWofu', num=child.id) }}" >usuń</a> {% endif %}{% endif %}</td>
+                <td style="width: 10%">{% for activity in child.activities[::-1] %} {% if activity.card %} {{activity.name}} Od {{activity.start_date.strftime("%Y-%m-%d")}} {% if activity.end_date %} Do {{ activity.end_date.strftime("%Y-%m-%d") }} {% endif %} <br> {% endif %} {% endfor %} {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('addCard', num=child.id) }}">dodaj</a> {% if child.activities %} <a href="{{ url_for('deleteCard', num=child.id) }}">usuń</a> {% endif %} {% endif %}                                                                                                                                                              </td>
+                <td>{% for therapy in child.therapies[::-1] %} {{ therapy.name }} {% endfor %} <br> {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('addingTherapyToChild', num=child.id) }}">dodaj</a> {% if child.therapies %} <a href="{{ url_for('deletingTherapyToChild', num=child.id )}}">usuń</a> {% endif %} {% endif %}</td>
+                <td>{% for teacher in child.teachers[::-1] %}  {{ teacher.name }} {% endfor %} <br> {% if "edycja dzieci" in all_permissions %} <a href="{{ url_for('addingTeacherToChild', num=child.id) }}">dodaj</a> {% if child.teachers %} <a href="{{ url_for('deletingTeacherToChild', num=child.id )}}">usuń</a> {% endif %} {% endif %}</td>
+                <td>{% for management in child.managements[::-1] %}  {{ management.name }} {% endfor %}  {% if "edycja dzieci" in all_permissions %} <br> <a href="{{ url_for('addManagement', num=child.id) }}">dodaj</a> {% if child.managements %} <a href="{{ url_for('deleteManagement', num=child.id )}}">usuń</a> {% endif %} {% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th class="th-sm">imię i nazwisko</th>
+                <th>data urodzenia</th>
+                <th>data ważności orzeczenia/opinii</th>
+                <th>umowa</th>
+                <th>opieka dziecka</th>
+                <th>kopia dokumentu</th>
+                <th>IPET/PWWR</th>
+                <th>WOFU/EWWR</th>
+                <th>karta zgłoszenia</th>
+                <th>rodzaj terapii</th>
+                <th>terapueta</th>
+                <th>zarządzanie</th>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+</div>
+
+
+{% include 'footer.html' %}
+
+

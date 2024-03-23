@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <title>Przedszkole kilińskiego</title>
@@ -17,12 +17,13 @@
     <!-- MDB -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.min.css" rel="stylesheet"/>
     <!-- DataTables -->
-    <link rel="stylesheet" href="static/dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body style="background-color: black;" class="d-flex flex-column min-vh-100">
-<nav class="navbar navbar-expand-lg navbar-light bg-white px-5 py-3 fixed-top navbarFont">
+<nav class="navbar navbar-expand-lg px-5 py-3 fixed-top" style="background: rgba(0, 0, 0, 0.8);">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('indexPage') }}">Przedszkole kilińskiego</a>
+    <a class="navbar-brand" href="{{ url_for('indexPage') }}">Przedszkole</a>
     <button
       data-mdb-collapse-init
       class="navbar-toggler"
@@ -43,7 +44,10 @@
         <a class="nav-link" href="{{ url_for('register') }}">Rejestracja</a>
         {% endif %}
         {% else %}
-        {% if "reading" in all_permissions %}
+        {% if "czytanie dzieci" in all_permissions %}
+        <a class="nav-link" href="{{ url_for('getAllChildren') }}">Dzieci</a>
+        {% endif %}
+        {% if "czytanie przedmioty" in all_permissions %}
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Kategorie
@@ -77,12 +81,12 @@
             Sekcja Admina
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-            {% if "adding" in all_permissions %}
+            {% if "dodawanie przedmioty" in all_permissions %}
             <li><a class="dropdown-item" href="{{ url_for('addStore') }}">Dodaj magazyn</a></li>
             <li><a class="dropdown-item" href="{{ url_for('addCategory') }}">Dodaj kategorię</a></li>
             <li><a class="dropdown-item" href="{{ url_for('addItem') }}">Dodaj przedmiot</a></li>
             {% endif %}
-            {% if "deleting" in all_permissions %}
+            {% if "usuwanie przedmioty" in all_permissions %}
             <li><a class="dropdown-item" href="{{ url_for('deleteCategory') }}">Usun kategorie</a></li>
             <li><a class="dropdown-item" href="{{ url_for('deleteStore') }}">Usun magazyn</a></li>
             {% endif %}
